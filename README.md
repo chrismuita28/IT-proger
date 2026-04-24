@@ -98,39 +98,69 @@
   * Сервис оценки должен поддерживать очередь задач и обрабатывать до 100 одновременных запросов
 
 # DDD
-## 1. Управление заказами
+## Доменные зоны
+### 1. Управление заказами
   * Создает и хранит заказы, связывая клиента, исполнителя и репозиторий
   * Предоставляет выбор готовых пакетов услуг и фиксирует их в заказе
   * Управляет статусами заказа и отслеживает прогресс выполнения
   * Обрабатывает установку, изменение и приостановку дедлайнов
   * Фиксирует факт завершения заказа и инициализирует процесс оплаты
+  * Заказ - Order
+  * Пакет услуг - ServicePackage
+  * Статус заказа - OrderStatus
+  * Дедлайн - Deadline
 
 ### 2. Анализ репозиториев
   * Авторизует пользователя через GitHub и получает список его репозиториев
   * Сканирует код: собирает LOC, зависимости, наличие тестов и конфигов
   * Рассчитывает коэффициент сложности на основе метрик и выбранного пакета
   * Вычисляет предварительную стоимость
+  * Репозиторий - Repository
+  * Токен доступа - AccessToken
+  * Метрики кода - CodeMetrics
+  * Коэффициент сложности - ComplexityCoefficient
+  * Финальная стоимость - FinalEstimate
 
 ### 3. Пользователи и репутация
   * Регистрирует профили, определяет роли
   * Верифицирует исполнителей: проверяет опыт, портфолио, внешние ссылки
   * Собирает и агрегирует отзывы, пересчитывает динамический рейтинг
   * Предоставляет историю заказов и репутационную статистику по пользователям
+  * Профиль пользователя - UserProfile
+  * Роль пользователя - UserRole
+  * Верификация - VerificationRecord
+  * Отзыв - Review
+  * Репутация - ReputationScore
 
 ### 4. Коммуникация
   * Создаёт приватный чат для каждой пары «клиент–исполнитель»
   * Позволяет исполнителю отправлять промежуточные результаты
   * Реализует механизм апрува/отклонения этапов клиентом
   * Генерирует структурированные отчёты «Что изменено» с диффами и пояснениями
+  * Чат - ChatSession
+  * Этап работы - Milestone
+  * Апрув - Approval
+  * Отчет об изменениях - ChangeReport
 
 ### 5. Платежная система
   * Блокирует средства клиента в эскроу при старте заказа
   * Автоматически переводит оплату исполнителю после подтверждения работы
   * Обрабатывает возвраты и частичные выплаты при отмене/споре
+  * Транзакция - PaymentTransaction
+  * Эскроу - Escrow
+  * Комиссия - PlatformFee
+  * Статус платежа - PaymentStatus
+  * Возврат - Refund
+  * Платежный метод - PaymentMethod
 
 ### 6. Арбитраж
   * Принимает заявки на арбитраж, предоставляет модератору историю чата и коммитов
   * Фиксирует решение модератора и обновляет статусы заказа и репутации сторон
+  * Спор - DisputeCase
+  * Статус спора - DisputeStatus
+  * Модератор - Moderator
+  * Решение арбитража - ArbitrationDecision
+  * Изменение репутации - ReputationAdjustment
 
 # BDD
 ## Критический путь
@@ -153,3 +183,101 @@
 Процесс оценки прерывается на стороне платформы, заказ не переходит в статус создания, пользовательский интерфейс корректно отрисовывает модальное окно с пояснением об ошибке доступа.
 
 # Ключевые экраны
+## Главный экран приложения
+<img width="450" height="700" alt="image" src="https://github.com/user-attachments/assets/af4684d2-4a0d-4235-9fc2-e384833c5541" />
+
+## Экран оформления заказа
+<img width="450" height="700" alt="image" src="https://github.com/user-attachments/assets/276def38-0011-4508-a500-9c33c354be2b" />
+
+## Экран отдельного заказа
+<img width="450" height="700" alt="image" src="https://github.com/user-attachments/assets/6304936d-ef2d-4d6e-a306-e9e3b9d050f8" />
+
+# API
+## Запуск анализа репозитория и возврат ответа
+POST /api/v1/analysis/estimate
+```
+{
+  "github_repo_owner": "string",
+  "github_repo_name": "string",
+  "package_code": "string (enum: 'deps_update' | 'docs_add' | 'full_refactor')",
+  "access_token": "string"
+}
+```
+
+200 OK
+```
+{
+  "estimate_id": "uuid",
+  "repository": {
+    "owner": "string",
+    "name": "string",
+    "is_private": "boolean"
+  },
+  "metrics": {
+    "lines_of_code": "integer",
+    "dependencies_count": "integer",
+    "has_tests": "boolean",
+    "detected_configs": ["array of strings, e.g., 'requirements.txt', 'docker-compose.yml']"
+  },
+  "pricing": {
+    "base_price": "number",
+    "complexity_coefficient": "number",
+    "final_estimate": "number (base_price х complexity_coefficient)",
+    "currency": "string"
+  },
+}
+```
+
+404, 403, 504 ERROR
+```
+{
+  "error": {
+    "code": "string (enum: 'repo_not_found' | 'insufficient_scope' | 'analysis_timeout')",
+    "message": "string ",
+    "suggestion": "string"
+  }
+}
+```
+
+## Фиксация заказа на основе утверждённой оценки, блокировка средств и публикация в ленте
+POST /api/v1/orders
+```
+{
+  "estimate_id": "uuid",
+  "deadline_at": "timestamp",
+  "payment_method": "string (enum: 'escrow_card' | 'platform_balance')",
+}
+```
+
+201 OK
+```
+{
+  "order_id": "uuid",
+  "status": "string",
+  "client_id": "uuid",
+  "repository_url": "string",
+  "pricing": {
+    "locked_amount": "number",
+    "platform_fee_percent": "number"
+  },
+  "deadline_at": "timestamp",
+  "created_at": "timestamp",
+  "links": {
+    "self": "/api/v1/orders/{order_id}",
+    "chat": "/api/v1/chat/{chat_session_id}",
+    "cancel": "/api/v1/orders/{order_id}/cancel"
+  }
+}
+```
+
+400, 402 ERROR
+```
+{
+  "error": {
+    "code": "string (enum: 'estimate_expired' | 'insufficient_funds' | 'deadline_too_short')",
+    "message": "string",
+    "suggestion": "string"
+  }
+}
+```
+
