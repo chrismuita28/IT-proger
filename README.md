@@ -281,3 +281,30 @@ POST /api/v1/orders
 }
 ```
 
+# Схема С4
+## Уровень 1
+<img width="500" height="400" alt="image" src="https://github.com/user-attachments/assets/568bd8bf-8c71-4e97-8e61-9c7ae29f2425" />
+
+## Уровень 2
+<img width="550" height="600" alt="image" src="https://github.com/user-attachments/assets/542cd91c-ef0e-4ad9-b1e9-e312f556f05b" />
+
+# Стек технологий
+### Frontend
+* React - веб-панель управления заказами, чатом и аналитикой
+* Kotlin/Swift - нативные приложения для Android и iOS
+
+### backend
+* Python - ядро бизнес-логики и модуль анализа кода
+* Go - высоконагруженные сервисы
+
+### База данных
+* PostgreSQL
+
+### Инфраструктура
+* nginx - обратный прокси и точка входа
+* Redis - быстрый кеш и брокер задач
+
+### Внешние сервисы
+* Github API - источник легаси-кода
+* ЮКасса API - платёжный шлюз с эскроу
+* NotificationManager API - единый диспетчер уведомлений
