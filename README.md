@@ -290,21 +290,21 @@ POST /api/v1/orders
 
 # Стек технологий
 ### Frontend
-* React - web приложение
-* Kotlin/Swift - mobile приложение
+* React - веб-панель управления заказами, чатом и аналитикой
+* Kotlin/Swift - нативные приложения для Android и iOS
 
 ### backend
-* Python
-* Go
+* Python - ядро бизнес-логики и модуль анализа кода
+* Go - высоконагруженные сервисы
 
 ### База данных
 * PostgreSQL
 
 ### Инфраструктура
-* nginx
-* Redis
+* nginx - обратный прокси и точка входа
+* Redis - быстрый кеш и брокер задач
 
 ### Внешние сервисы
-* Github API
-* ЮКасса API
-* NotificationManager API
+* Github API - источник легаси-кода
+* ЮКасса API - платёжный шлюз с эскроу
+* NotificationManager API - единый диспетчер уведомлений
